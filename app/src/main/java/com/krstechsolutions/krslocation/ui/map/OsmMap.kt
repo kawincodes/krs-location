@@ -1,6 +1,8 @@
 package com.krstechsolutions.krslocation.ui.map
 
 import android.graphics.Paint
+import android.view.ViewGroup
+import android.widget.FrameLayout
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
@@ -8,6 +10,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clipToBounds
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.platform.LocalContext
@@ -76,6 +79,19 @@ fun OsmMap(
 
                 override fun longPressHelper(p: GeoPoint): Boolean = false
             }))
+        }
+    }
+
+    // osmdroid draws partially visible tiles past the view's edges and Compose's AndroidView
+    // host does not clip, so tiles would spill over the top bar. A clipping container fixes it.
+    val container = remember(mapView) {
+        FrameLayout(context).apply {
+            clipChildren = true
+            clipToPadding = true
+            addView(
+                mapView,
+                FrameLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT)
+            )
         }
     }
 
@@ -152,9 +168,10 @@ fun OsmMap(
     }
 
     AndroidView(
-        factory = { mapView },
-        modifier = modifier,
-        update = { view ->
+        factory = { container },
+        modifier = modifier.clipToBounds(),
+        update = { _ ->
+            val view = mapView
             var dirty = false
 
             // Pin
