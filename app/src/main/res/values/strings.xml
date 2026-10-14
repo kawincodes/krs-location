@@ -1,0 +1,43 @@
+<resources>
+    <string name="app_name">KRS Location</string>
+
+    <string name="status_mock_app_ok">Selected as mock location app</string>
+    <string name="status_mock_app_missing">Not selected as mock location app</string>
+    <string name="status_idle">Mocking is off</string>
+    <string name="status_running">Mocking at %1$s</string>
+    <string name="status_moving">Walking to %1$s</string>
+
+    <string name="hint_latitude">Latitude</string>
+    <string name="hint_longitude">Longitude</string>
+    <string name="hint_speed">Speed (m/s)</string>
+    <string name="hint_step">Step (m)</string>
+
+    <string name="action_apply">Apply</string>
+    <string name="action_start">Start mocking</string>
+    <string name="action_stop">Stop</string>
+    <string name="action_stop_mocking">Stop mocking</string>
+    <string name="action_developer_options">Developer options</string>
+    <string name="action_center">Center</string>
+    <string name="action_north">Move north</string>
+    <string name="action_south">Move south</string>
+    <string name="action_east">Move east</string>
+    <string name="action_west">Move west</string>
+    <string name="label_smooth">Walk to new position instead of jumping</string>
+    <string name="label_nudge">Nudge position</string>
+    <string name="hint_tap_map">Tap the map to choose a position</string>
+
+    <string name="error_invalid_coordinates">Enter a latitude between -90 and 90 and a longitude between -180 and 180</string>
+    <string name="error_not_mock_app">This app is not selected as the mock location app. Enable Developer options, then choose KRS Location under “Select mock location app”.</string>
+    <string name="error_provider_registration">Could not register a mock location provider on this device.</string>
+    <string name="error_location_permission">Location permission is required to run the mocking service.</string>
+
+    <string name="dialog_mock_title">Set up mock location</string>
+    <string name="dialog_mock_message">Android only lets one app override the device location, and it has to be chosen in Developer options.\n\n1. Open Settings › About phone and tap “Build number” seven times to enable Developer options.\n2. Open Developer options and tap “Select mock location app”.\n3. Choose KRS Location.</string>
+    <string name="dialog_open_settings">Open settings</string>
+    <string name="dialog_cancel">Cancel</string>
+
+    <string name="notification_channel_name">Mock location</string>
+    <string name="notification_channel_description">Shown while the device location is being overridden</string>
+    <string name="notification_title">Mock location active</string>
+    <string name="cd_marker">Mocked position</string>
+</resources>
