@@ -1,9 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <color name="brand_primary">#0B6E4F</color>
-    <color name="brand_on_primary">#FFFFFF</color>
-    <color name="brand_secondary">#F4A259</color>
-    <color name="ic_launcher_background">#0B6E4F</color>
-    <color name="status_ok">#1B8A4C</color>
-    <color name="status_bad">#C62828</color>
+    <color name="shad_background_light">#FFFFFF</color>
+    <color name="shad_background_dark">#09090B</color>
+    <color name="ic_launcher_background">#18181B</color>
 </resources>

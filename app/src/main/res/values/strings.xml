@@ -1,11 +1,22 @@
 <resources>
     <string name="app_name">KRS Location</string>
+    <string name="app_subtitle">Mock location</string>
+
+    <string name="badge_active">Active</string>
+    <string name="badge_walking">Walking</string>
+    <string name="badge_off">Off</string>
+    <string name="badge_ready">Ready</string>
 
     <string name="status_mock_app_ok">Selected as mock location app</string>
     <string name="status_mock_app_missing">Not selected as mock location app</string>
+    <string name="status_mock_app_missing_desc">Android only lets the app chosen in Developer options override the device location.</string>
     <string name="status_idle">Mocking is off</string>
-    <string name="status_running">Mocking at %1$s</string>
-    <string name="status_moving">Walking to %1$s</string>
+    <string name="status_idle_desc">Pick a position, then start to broadcast it to every app on this device.</string>
+    <string name="status_running">Broadcasting position</string>
+    <string name="status_moving">Walking to destination</string>
+
+    <string name="section_position">Position</string>
+    <string name="section_movement">Movement</string>
 
     <string name="hint_latitude">Latitude</string>
     <string name="hint_longitude">Longitude</string>
@@ -16,15 +27,17 @@
     <string name="action_start">Start mocking</string>
     <string name="action_stop">Stop</string>
     <string name="action_stop_mocking">Stop mocking</string>
-    <string name="action_developer_options">Developer options</string>
-    <string name="action_center">Center</string>
+    <string name="action_developer_options">Open developer options</string>
+    <string name="action_center">Center on position</string>
     <string name="action_north">Move north</string>
     <string name="action_south">Move south</string>
     <string name="action_east">Move east</string>
     <string name="action_west">Move west</string>
-    <string name="label_smooth">Walk to new position instead of jumping</string>
-    <string name="label_nudge">Nudge position</string>
-    <string name="hint_tap_map">Tap the map to choose a position</string>
+    <string name="label_smooth">Walk to new position</string>
+    <string name="label_smooth_desc">Move at the set speed instead of jumping</string>
+    <string name="label_nudge">Nudge</string>
+    <string name="label_nudge_desc">Shift the position by one step</string>
+    <string name="hint_tap_map">Tap the map or drag the pin</string>
 
     <string name="error_invalid_coordinates">Enter a latitude between -90 and 90 and a longitude between -180 and 180</string>
     <string name="error_not_mock_app">This app is not selected as the mock location app. Enable Developer options, then choose KRS Location under “Select mock location app”.</string>

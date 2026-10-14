@@ -23,6 +23,19 @@ mocked position.
 - Remembers your last position and settings.
 - No API keys, no accounts, no root.
 
+## UI stack
+
+- **Jetpack Compose** for the whole UI (no XML layouts).
+- **shadcn/ui style components** written in Compose: Button, Card, Input,
+  Switch, Badge, Alert, Separator and Dialog, using shadcn's default "zinc"
+  colour tokens with light and dark themes. See
+  `app/src/main/java/com/krstechsolutions/krslocation/ui/components` and
+  `ui/theme`.
+- **Lucide icons** via `com.composables:icons-lucide`, used as Compose
+  `ImageVector`s (`Lucide.MapPin`, `Lucide.Play`, ...).
+- **osmdroid** map embedded with `AndroidView`; tiles are colour-inverted in
+  dark mode.
+
 ## Requirements
 
 - Android 8.0 (API 26) or newer.
@@ -59,12 +72,17 @@ Android Studio Ladybug or newer, JDK 17+, and the Android SDK with platform
 
 ```
 app/src/main/java/com/krstechsolutions/krslocation/
-  MainActivity.kt          Map, inputs, direction pad, permission flow
+  MainActivity.kt          Hosts the Compose UI and configures osmdroid
+  MainViewModel.kt         Screen state and actions (target, inputs, permissions)
   MockLocationService.kt   Foreground service that registers test providers
                            and publishes the position once a second
   MockLocationUtils.kt     "Is this the selected mock app?" and settings intent
   LocationPrefs.kt         Persisted position and movement settings
   GeoMath.kt               Distance / bearing / destination helpers
+  ui/MainScreen.kt         The screen: top bar, map, status, inputs, nudge pad
+  ui/map/OsmMap.kt         osmdroid MapView wrapped for Compose
+  ui/components/           shadcn-style Compose primitives
+  ui/theme/                shadcn colour and typography tokens
 ```
 
 ## Notes and limitations
