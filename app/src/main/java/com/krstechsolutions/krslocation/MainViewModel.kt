@@ -76,7 +76,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
         private set
     var showMapSettings: Boolean by mutableStateOf(false)
 
-    fun setMapProvider(provider: MapProvider) {
+    fun selectMapProvider(provider: MapProvider) {
         if (provider == MapProvider.GOOGLE && !MapProvider.googleAvailable) {
             showMessage(app.getString(R.string.map_google_missing_key))
             return
@@ -87,7 +87,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
         recenter()
     }
 
-    fun setGoogleMapStyle(style: GoogleMapStyle) {
+    fun selectGoogleMapStyle(style: GoogleMapStyle) {
         googleMapStyle = style
         prefs.googleMapType = style.key
     }

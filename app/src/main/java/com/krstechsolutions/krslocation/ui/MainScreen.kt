@@ -469,14 +469,14 @@ private fun MapSettingsDialog(vm: MainViewModel) {
                 title = stringResource(R.string.map_provider_osm),
                 subtitle = stringResource(R.string.map_provider_osm_desc),
                 selected = vm.mapProvider == MapProvider.OSM,
-                onClick = { vm.setMapProvider(MapProvider.OSM) },
+                onClick = { vm.selectMapProvider(MapProvider.OSM) },
             )
             ChoiceRow(
                 title = stringResource(R.string.map_provider_google),
                 subtitle = if (MapProvider.googleAvailable) stringResource(R.string.map_provider_google_desc) else stringResource(R.string.map_google_missing_key),
                 selected = vm.mapProvider == MapProvider.GOOGLE,
                 enabled = MapProvider.googleAvailable,
-                onClick = { vm.setMapProvider(MapProvider.GOOGLE) },
+                onClick = { vm.selectMapProvider(MapProvider.GOOGLE) },
             )
             if (vm.mapProvider == MapProvider.GOOGLE) {
                 SectionLabel(stringResource(R.string.map_type))
@@ -491,7 +491,7 @@ private fun MapSettingsDialog(vm: MainViewModel) {
                             }
                         ),
                         selected = vm.googleMapStyle == style,
-                        onClick = { vm.setGoogleMapStyle(style) },
+                        onClick = { vm.selectGoogleMapStyle(style) },
                     )
                 }
             }
