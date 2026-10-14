@@ -95,8 +95,9 @@ One-time setup:
    | `KEY_ALIAS`         | `krs` (or the alias you chose)          |
    | `KEY_PASSWORD`      | key password                            |
 
-3. Release: `git tag v1.2.0 && git push origin v1.2.0`, or run the
-   "Release" workflow manually with a version number.
+3. Release: `git tag v1.2.0 && git push origin v1.2.0`, push a branch named
+   `release/1.2.0`, or run the "Release" workflow manually with a version
+   number. The workflow creates the tag for branch and manual runs.
 
 For local signed builds put the same values in a `keystore.properties` file at
 the repository root (ignored by git) with `KEYSTORE_FILE=/path/to/krs-release.jks`.

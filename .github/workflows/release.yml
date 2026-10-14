@@ -1,11 +1,13 @@
 name: Release
 
-# Push a tag like v1.2.0 (or run manually with a version) to build a signed
-# release APK and publish it as a GitHub Release. The in-app updater reads
-# the latest release through the GitHub API.
+# Push a tag like v1.2.0, push a branch named release/1.2.0, or run manually
+# with a version, to build a signed release APK and publish it as a GitHub
+# Release. For branch and manual runs the workflow creates the tag itself.
+# The in-app updater reads the latest release through the GitHub API.
 on:
   push:
     tags: ["v*"]
+    branches: ["release/*"]
   workflow_dispatch:
     inputs:
       version:
@@ -26,13 +28,19 @@ jobs:
       - name: Resolve version
         id: version
         run: |
+          FROM_TAG=false
           if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
             VERSION="${{ github.event.inputs.version }}"
-          else
+          elif [[ "$GITHUB_REF" == refs/tags/* ]]; then
             VERSION="${GITHUB_REF_NAME#v}"
+            FROM_TAG=true
+          else
+            VERSION="${GITHUB_REF_NAME#release/}"
           fi
+          VERSION="${VERSION#v}"
           echo "version=$VERSION" >> "$GITHUB_OUTPUT"
           echo "tag=v$VERSION" >> "$GITHUB_OUTPUT"
+          echo "from_tag=$FROM_TAG" >> "$GITHUB_OUTPUT"
 
       - uses: actions/setup-java@v5
         with:
@@ -82,8 +90,8 @@ jobs:
           SDK="${ANDROID_HOME:-${ANDROID_SDK_ROOT:-/usr/local/lib/android/sdk}}"
           "$SDK/build-tools/35.0.0/apksigner" verify --print-certs dist/*.apk
 
-      - name: Create tag (manual runs)
-        if: github.event_name == 'workflow_dispatch'
+      - name: Create tag (branch and manual runs)
+        if: steps.version.outputs.from_tag != 'true'
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
