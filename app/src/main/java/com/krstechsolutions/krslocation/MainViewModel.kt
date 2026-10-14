@@ -109,7 +109,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
         setTarget(GeoPoint(lat, lng), recenter = true)
     }
 
-    fun setSmoothMovement(enabled: Boolean) {
+    fun updateSmoothMovement(enabled: Boolean) {
         smoothMovement = enabled
         prefs.smoothMovement = enabled
         pushUpdateIfRunning()

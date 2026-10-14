@@ -488,7 +488,7 @@ private fun ColumnScope.MovementSection(vm: MainViewModel, focusManager: FocusMa
             Text(stringResource(R.string.label_smooth), style = ShadTheme.typography.small)
             Text(stringResource(R.string.label_smooth_desc), style = ShadTheme.typography.muted, color = c.mutedForeground)
         }
-        ShadSwitch(checked = vm.smoothMovement, onCheckedChange = vm::setSmoothMovement)
+        ShadSwitch(checked = vm.smoothMovement, onCheckedChange = vm::updateSmoothMovement)
     }
 
     Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
