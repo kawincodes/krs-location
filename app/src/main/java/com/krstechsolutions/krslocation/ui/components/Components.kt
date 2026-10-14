@@ -2,6 +2,7 @@ package com.krstechsolutions.krslocation.ui.components
 
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.animateDpAsState
+import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -14,6 +15,7 @@ import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.offset
@@ -38,6 +40,8 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
+import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.graphics.vector.ImageVector
@@ -46,6 +50,7 @@ import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Dp
+import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import com.krstechsolutions.krslocation.ui.theme.ShadRadius
@@ -185,6 +190,8 @@ fun ShadInput(
     keyboardActions: KeyboardActions = KeyboardActions.Default,
     leadingIcon: ImageVector? = null,
     textStyle: TextStyle = ShadTheme.typography.p,
+    focusRequester: FocusRequester? = null,
+    trailing: (@Composable () -> Unit)? = null,
 ) {
     val c = ShadTheme.colors
     val interaction = remember { MutableInteractionSource() }
@@ -214,7 +221,9 @@ fun ShadInput(
             BasicTextField(
                 value = value,
                 onValueChange = onValueChange,
-                modifier = Modifier.weight(1f),
+                modifier = Modifier
+                    .weight(1f)
+                    .then(if (focusRequester != null) Modifier.focusRequester(focusRequester) else Modifier),
                 enabled = enabled,
                 singleLine = singleLine,
                 textStyle = textStyle.copy(color = if (enabled) c.foreground else c.mutedForeground),
@@ -237,6 +246,10 @@ fun ShadInput(
                     }
                 },
             )
+            if (trailing != null) {
+                Spacer(Modifier.width(8.dp))
+                trailing()
+            }
         }
     }
 }
@@ -271,7 +284,7 @@ fun ShadSwitch(
     ) {
         Box(
             Modifier
-                .offset(x = thumbOffset, y = 2.dp)
+                .offset { IntOffset(thumbOffset.roundToPx(), 2.dp.roundToPx()) }
                 .size(20.dp)
                 .shadow(1.dp, CircleShape)
                 .background(c.background, CircleShape),
@@ -412,5 +425,160 @@ fun ShadDialog(
                 ShadButton(onClick = onConfirm) { Text(confirmText) }
             }
         }
+    }
+}
+
+// ---- Tabs -----------------------------------------------------------------------------------
+
+/** shadcn Tabs: a muted pill container with the active trigger raised on the background colour. */
+@Composable
+fun <T> ShadTabs(
+    items: List<Pair<T, String>>,
+    selected: T,
+    onSelect: (T) -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    val c = ShadTheme.colors
+    Row(
+        modifier
+            .fillMaxWidth()
+            .height(40.dp)
+            .clip(ShadRadius.lgShape)
+            .background(c.muted)
+            .padding(4.dp),
+        horizontalArrangement = Arrangement.spacedBy(4.dp),
+    ) {
+        items.forEach { (value, label) ->
+            val active = value == selected
+            val bg by animateColorAsState(if (active) c.background else Color.Transparent, label = "tabBg")
+            val fg by animateColorAsState(if (active) c.foreground else c.mutedForeground, label = "tabFg")
+            Box(
+                Modifier
+                    .weight(1f)
+                    .fillMaxHeight()
+                    .shadow(if (active) 1.dp else 0.dp, ShadRadius.mdShape)
+                    .clip(ShadRadius.mdShape)
+                    .background(bg)
+                    .clickable(
+                        interactionSource = remember { MutableInteractionSource() },
+                        indication = null,
+                        role = Role.Tab,
+                    ) { onSelect(value) },
+                contentAlignment = Alignment.Center,
+            ) {
+                Text(label, style = ShadTheme.typography.small, color = fg)
+            }
+        }
+    }
+}
+
+// ---- Progress -------------------------------------------------------------------------------
+
+@Composable
+fun ShadProgress(fraction: Float, modifier: Modifier = Modifier) {
+    val c = ShadTheme.colors
+    val animated by animateFloatAsState(fraction.coerceIn(0f, 1f), label = "progress")
+    Box(
+        modifier
+            .fillMaxWidth()
+            .height(8.dp)
+            .clip(ShadRadius.fullShape)
+            .background(c.secondary),
+    ) {
+        Box(
+            Modifier
+                .fillMaxHeight()
+                .fillMaxWidth(animated)
+                .background(c.primary, ShadRadius.fullShape),
+        )
+    }
+}
+
+// ---- Text input dialog -----------------------------------------------------------------------
+
+@Composable
+fun ShadInputDialog(
+    onDismissRequest: () -> Unit,
+    title: String,
+    value: String,
+    onValueChange: (String) -> Unit,
+    placeholder: String,
+    confirmText: String,
+    onConfirm: () -> Unit,
+    cancelText: String,
+    description: String? = null,
+) {
+    val c = ShadTheme.colors
+    Dialog(onDismissRequest = onDismissRequest) {
+        Column(
+            Modifier
+                .fillMaxWidth()
+                .shadow(8.dp, ShadRadius.lgShape)
+                .clip(ShadRadius.lgShape)
+                .background(c.popover)
+                .border(1.dp, c.border, ShadRadius.lgShape)
+                .padding(24.dp),
+            verticalArrangement = Arrangement.spacedBy(12.dp),
+        ) {
+            Text(title, style = ShadTheme.typography.h4, color = c.popoverForeground)
+            if (description != null) {
+                Text(description, style = ShadTheme.typography.muted, color = c.mutedForeground)
+            }
+            ShadInput(value = value, onValueChange = onValueChange, placeholder = placeholder)
+            Spacer(Modifier.height(4.dp))
+            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp, Alignment.End)) {
+                ShadButton(onClick = onDismissRequest, variant = ButtonVariant.Outline) { Text(cancelText) }
+                ShadButton(onClick = onConfirm) { Text(confirmText) }
+            }
+        }
+    }
+}
+
+// ---- List row -------------------------------------------------------------------------------
+
+/** A clickable settings-style row: icon, title, optional subtitle, optional trailing content. */
+@Composable
+fun ShadListRow(
+    title: String,
+    modifier: Modifier = Modifier,
+    subtitle: String? = null,
+    icon: ImageVector? = null,
+    onClick: (() -> Unit)? = null,
+    trailing: (@Composable () -> Unit)? = null,
+) {
+    val c = ShadTheme.colors
+    Row(
+        modifier
+            .fillMaxWidth()
+            .clip(ShadRadius.lgShape)
+            .then(
+                if (onClick != null) Modifier.clickable(
+                    interactionSource = remember { MutableInteractionSource() },
+                    indication = ripple(),
+                    onClick = onClick,
+                ) else Modifier
+            )
+            .padding(horizontal = 12.dp, vertical = 10.dp),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(12.dp),
+    ) {
+        if (icon != null) {
+            Box(
+                Modifier
+                    .size(36.dp)
+                    .clip(ShadRadius.mdShape)
+                    .background(c.secondary),
+                contentAlignment = Alignment.Center,
+            ) {
+                Icon(icon, null, Modifier.size(18.dp), tint = c.secondaryForeground)
+            }
+        }
+        Column(Modifier.weight(1f)) {
+            Text(title, style = ShadTheme.typography.small, maxLines = 1, overflow = TextOverflow.Ellipsis)
+            if (subtitle != null) {
+                Text(subtitle, style = ShadTheme.typography.muted, color = c.mutedForeground, maxLines = 2, overflow = TextOverflow.Ellipsis)
+            }
+        }
+        trailing?.invoke()
     }
 }

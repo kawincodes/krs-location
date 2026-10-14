@@ -19,3 +19,6 @@ output-metadata.json
 
 # OS
 .DS_Store
+
+# Release signing
+keystore.properties

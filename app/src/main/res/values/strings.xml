@@ -1,13 +1,15 @@
 <resources>
     <string name="app_name">KRS Location</string>
-    <string name="app_subtitle">Mock location</string>
 
+    <!-- Badges -->
     <string name="badge_active">Active</string>
     <string name="badge_walking">Walking</string>
+    <string name="badge_route">Route</string>
+    <string name="badge_paused">Paused</string>
     <string name="badge_off">Off</string>
     <string name="badge_ready">Ready</string>
 
-    <string name="status_mock_app_ok">Selected as mock location app</string>
+    <!-- Status -->
     <string name="status_mock_app_missing">Not selected as mock location app</string>
     <string name="status_mock_app_missing_desc">Android only lets the app chosen in Developer options override the device location.</string>
     <string name="status_idle">Mocking is off</string>
@@ -15,16 +17,24 @@
     <string name="status_running">Broadcasting position</string>
     <string name="status_moving">Walking to destination</string>
 
+    <!-- Tabs / sections -->
+    <string name="tab_pin">Pin</string>
+    <string name="tab_route">Route</string>
     <string name="section_position">Position</string>
     <string name="section_movement">Movement</string>
+    <string name="section_playback">Playback</string>
 
+    <!-- Inputs -->
     <string name="hint_latitude">Latitude</string>
     <string name="hint_longitude">Longitude</string>
     <string name="hint_speed">Speed (m/s)</string>
     <string name="hint_step">Step (m)</string>
+    <string name="hint_route_speed">Route speed (m/s)</string>
 
+    <!-- Actions -->
     <string name="action_apply">Apply</string>
     <string name="action_start">Start mocking</string>
+    <string name="action_start_short">Start</string>
     <string name="action_stop">Stop</string>
     <string name="action_stop_mocking">Stop mocking</string>
     <string name="action_developer_options">Open developer options</string>
@@ -33,24 +43,122 @@
     <string name="action_south">Move south</string>
     <string name="action_east">Move east</string>
     <string name="action_west">Move west</string>
+    <string name="action_paste">Paste</string>
+    <string name="action_share">Share</string>
+    <string name="action_save">Save</string>
+    <string name="action_favorites">Favorites</string>
+    <string name="action_search">Search</string>
+    <string name="action_about">About</string>
+    <string name="action_back">Back</string>
+    <string name="action_close">Close</string>
+    <string name="action_undo">Undo</string>
+    <string name="action_clear">Clear</string>
+    <string name="action_play">Play route</string>
+    <string name="action_pause">Pause</string>
+    <string name="action_resume">Resume</string>
+    <string name="action_restart">Restart</string>
+    <string name="action_stop_route">End route</string>
+    <string name="action_delete">Delete</string>
+    <string name="action_view">View</string>
+    <string name="action_cancel">Cancel</string>
+
+    <!-- Movement -->
     <string name="label_smooth">Walk to new position</string>
     <string name="label_smooth_desc">Move at the set speed instead of jumping</string>
     <string name="label_nudge">Nudge</string>
     <string name="label_nudge_desc">Shift the position by one step</string>
+    <string name="label_loop">Loop route</string>
+    <string name="label_loop_desc">Start again from the first waypoint when the end is reached</string>
     <string name="hint_tap_map">Tap the map or drag the pin</string>
+    <string name="hint_tap_route">Tap the map to add waypoints · tap a waypoint to remove it</string>
 
+    <!-- Route -->
+    <string name="route_empty_title">No route yet</string>
+    <string name="route_empty_desc">Add at least two waypoints on the map to build a route.</string>
+    <plurals name="route_points">
+        <item quantity="one">%1$d waypoint</item>
+        <item quantity="other">%1$d waypoints</item>
+    </plurals>
+    <string name="route_summary">%1$s · about %2$s at %3$s m/s</string>
+    <string name="route_status_playing">Playing route</string>
+    <string name="route_status_paused">Route paused</string>
+    <string name="route_status_done">Route finished</string>
+    <string name="route_progress">%1$d%% · %2$s of %3$s</string>
+    <string name="route_need_two">Add at least two waypoints first</string>
+
+    <!-- Search -->
+    <string name="search_hint">Search for a place or address</string>
+    <string name="search_no_results">No places found</string>
+    <string name="search_error">Search failed. Check your connection.</string>
+    <string name="search_attribution">Results © OpenStreetMap contributors</string>
+
+    <!-- Favorites -->
+    <string name="favorites_title">Favorites</string>
+    <string name="favorites_empty">No saved places yet. Save the current position to find it again quickly.</string>
+    <string name="favorites_save_current">Save current position</string>
+    <string name="favorite_name_hint">Name, e.g. Office</string>
+    <string name="favorite_saved">Saved to favorites</string>
+    <string name="favorite_dialog_title">Save position</string>
+
+    <!-- Share / paste -->
+    <string name="paste_none">No coordinates found in the clipboard</string>
+    <string name="share_subject">My position</string>
+    <string name="share_text">Position: %1$s\n%2$s</string>
+    <string name="incoming_position_set">Position set from shared link</string>
+
+    <!-- Errors -->
     <string name="error_invalid_coordinates">Enter a latitude between -90 and 90 and a longitude between -180 and 180</string>
     <string name="error_not_mock_app">This app is not selected as the mock location app. Enable Developer options, then choose KRS Location under “Select mock location app”.</string>
     <string name="error_provider_registration">Could not register a mock location provider on this device.</string>
     <string name="error_location_permission">Location permission is required to run the mocking service.</string>
 
+    <!-- Dialogs -->
     <string name="dialog_mock_title">Set up mock location</string>
     <string name="dialog_mock_message">Android only lets one app override the device location, and it has to be chosen in Developer options.\n\n1. Open Settings › About phone and tap “Build number” seven times to enable Developer options.\n2. Open Developer options and tap “Select mock location app”.\n3. Choose KRS Location.</string>
     <string name="dialog_open_settings">Open settings</string>
     <string name="dialog_cancel">Cancel</string>
 
+    <!-- Notification -->
     <string name="notification_channel_name">Mock location</string>
     <string name="notification_channel_description">Shown while the device location is being overridden</string>
     <string name="notification_title">Mock location active</string>
+    <string name="notification_route_progress">Playing route · %1$d%%</string>
+    <string name="notification_route_paused">Route paused · %1$d%%</string>
+    <string name="notification_route_done">Route finished at %1$s</string>
     <string name="cd_marker">Mocked position</string>
+
+    <!-- Tile / widget -->
+    <string name="tile_label">Mock location</string>
+    <string name="tile_subtitle_on">Active</string>
+    <string name="widget_description">Start or stop the mock location at the last used position.</string>
+    <string name="widget_status_on">Mock location on</string>
+    <string name="widget_status_walking">Walking</string>
+    <string name="widget_status_route">Playing route</string>
+    <string name="widget_status_off">Mock location off</string>
+
+    <!-- About / developer info -->
+    <string name="about_title">About</string>
+    <string name="about_version">Version %1$s (build %2$d)</string>
+    <string name="about_tagline">Override the device location for testing location-aware apps.</string>
+    <string name="about_developer">Developer</string>
+    <string name="about_contact">Contact</string>
+    <string name="about_website">Website</string>
+    <string name="about_source">Source code</string>
+    <string name="about_updates">Updates</string>
+    <string name="about_installed_version">Installed version</string>
+    <string name="about_check_updates">Check for updates</string>
+    <string name="about_checking">Checking…</string>
+    <string name="about_up_to_date">You are on the latest version</string>
+    <string name="about_update_available">Version %1$s is available</string>
+    <string name="about_download_install">Download and install</string>
+    <string name="about_view_release">View release</string>
+    <string name="about_update_error">Could not check for updates: %1$s</string>
+    <string name="about_built_with">Built with</string>
+    <string name="about_built_with_desc">Jetpack Compose, shadcn/ui inspired components, Lucide icons and osmdroid (OpenStreetMap). Map data © OpenStreetMap contributors.</string>
+    <string name="about_how_title">How it works</string>
+    <string name="about_how_desc">The app registers itself as a test provider for GPS, network and fused location and publishes your chosen position once a second. Android requires the app to be selected under Developer options › Select mock location app. Intended for testing and development.</string>
+    <string name="update_banner">Update %1$s available</string>
+    <string name="update_download_title">KRS Location %1$s</string>
+    <string name="update_download_started">Downloading update…</string>
+    <string name="update_download_failed">Download failed. Open the release page to download manually.</string>
 </resources>

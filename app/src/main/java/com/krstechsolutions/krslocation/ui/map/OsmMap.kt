@@ -1,5 +1,6 @@
 package com.krstechsolutions.krslocation.ui.map
 
+import android.graphics.Paint
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
@@ -7,6 +8,8 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.core.content.ContextCompat
@@ -21,29 +24,37 @@ import org.osmdroid.views.CustomZoomButtonsController
 import org.osmdroid.views.MapView
 import org.osmdroid.views.overlay.MapEventsOverlay
 import org.osmdroid.views.overlay.Marker
+import org.osmdroid.views.overlay.Polyline
 import org.osmdroid.views.overlay.TilesOverlay
 
 /** A request to move the camera; a new [id] forces the move even for the same point. */
 data class CameraRequest(val point: GeoPoint, val id: Long)
 
 /**
- * osmdroid [MapView] wrapped for Compose with a single draggable marker,
- * tap-to-place and lifecycle forwarding.
+ * osmdroid [MapView] wrapped for Compose: one draggable pin, tap-to-place,
+ * a route polyline with waypoint markers and a "travelled" overlay.
  */
 @Composable
 fun OsmMap(
-    markerPosition: GeoPoint,
+    markerPosition: GeoPoint?,
+    routePoints: List<GeoPoint>,
+    traveledPoints: List<GeoPoint>,
+    routeColor: Color,
+    traveledColor: Color,
     cameraRequest: CameraRequest?,
+    initialCenter: GeoPoint,
     initialZoom: Double,
     darkTheme: Boolean,
     onTap: (GeoPoint) -> Unit,
     onMarkerDragEnd: (GeoPoint) -> Unit,
+    onWaypointTap: (Int) -> Unit,
     onZoomChanged: (Double) -> Unit,
     modifier: Modifier = Modifier,
 ) {
     val context = LocalContext.current
     val currentOnTap by rememberUpdatedState(onTap)
     val currentOnDragEnd by rememberUpdatedState(onMarkerDragEnd)
+    val currentOnWaypointTap by rememberUpdatedState(onWaypointTap)
     val currentOnZoomChanged by rememberUpdatedState(onZoomChanged)
 
     val mapView = remember {
@@ -54,8 +65,9 @@ fun OsmMap(
             isTilesScaledToDpi = true
             minZoomLevel = 3.0
             controller.setZoom(initialZoom)
-            controller.setCenter(markerPosition)
+            controller.setCenter(initialCenter)
 
+            // Index 0 so every other overlay gets the touch first.
             overlays.add(MapEventsOverlay(object : MapEventsReceiver {
                 override fun singleTapConfirmedHelper(p: GeoPoint): Boolean {
                     currentOnTap(p)
@@ -67,12 +79,35 @@ fun OsmMap(
         }
     }
 
-    val marker = remember(mapView) {
+    val plannedLine = remember(mapView) {
+        Polyline(mapView).apply {
+            outlinePaint.strokeWidth = 10f
+            outlinePaint.strokeCap = Paint.Cap.ROUND
+            outlinePaint.strokeJoin = Paint.Join.ROUND
+            infoWindow = null
+            setOnClickListener { _, _, _ -> false }
+            mapView.overlays.add(this)
+        }
+    }
+    val traveledLine = remember(mapView) {
+        Polyline(mapView).apply {
+            outlinePaint.strokeWidth = 10f
+            outlinePaint.strokeCap = Paint.Cap.ROUND
+            outlinePaint.strokeJoin = Paint.Join.ROUND
+            infoWindow = null
+            setOnClickListener { _, _, _ -> false }
+            mapView.overlays.add(this)
+        }
+    }
+    val waypointMarkers = remember(mapView) { mutableListOf<Marker>() }
+    val waypointIcon = remember { ContextCompat.getDrawable(context, R.drawable.ic_waypoint) }
+
+    val pin = remember(mapView) {
         Marker(mapView).apply {
             icon = ContextCompat.getDrawable(context, R.drawable.ic_marker)
             setAnchor(Marker.ANCHOR_CENTER, Marker.ANCHOR_BOTTOM)
             title = context.getString(R.string.cd_marker)
-            position = markerPosition
+            infoWindow = null
             isDraggable = true
             setOnMarkerDragListener(object : Marker.OnMarkerDragListener {
                 override fun onMarkerDrag(marker: Marker) = Unit
@@ -119,11 +154,56 @@ fun OsmMap(
     AndroidView(
         factory = { mapView },
         modifier = modifier,
-        update = {
-            if (marker.position != markerPosition) {
-                marker.position = markerPosition
-                it.invalidate()
+        update = { view ->
+            var dirty = false
+
+            // Pin
+            val pinEnabled = markerPosition != null
+            if (pin.isEnabled != pinEnabled) {
+                pin.isEnabled = pinEnabled
+                dirty = true
             }
+            if (markerPosition != null && pin.position != markerPosition) {
+                pin.position = markerPosition
+                dirty = true
+            }
+
+            // Route lines
+            plannedLine.outlinePaint.color = routeColor.toArgb()
+            traveledLine.outlinePaint.color = traveledColor.toArgb()
+            if (plannedLine.actualPoints != routePoints) {
+                plannedLine.setPoints(routePoints)
+                dirty = true
+            }
+            if (traveledLine.actualPoints != traveledPoints) {
+                traveledLine.setPoints(traveledPoints)
+                dirty = true
+            }
+
+            // Waypoint markers: rebuild when the list changes.
+            val currentPositions = waypointMarkers.map { it.position }
+            if (currentPositions != routePoints) {
+                waypointMarkers.forEach { view.overlays.remove(it) }
+                waypointMarkers.clear()
+                val pinIndex = view.overlays.indexOf(pin).takeIf { it >= 0 } ?: view.overlays.size
+                routePoints.forEachIndexed { index, point ->
+                    val m = Marker(view).apply {
+                        icon = waypointIcon
+                        setAnchor(Marker.ANCHOR_CENTER, Marker.ANCHOR_CENTER)
+                        infoWindow = null
+                        position = point
+                        setOnMarkerClickListener { _, _ ->
+                            currentOnWaypointTap(index)
+                            true
+                        }
+                    }
+                    waypointMarkers += m
+                    view.overlays.add(pinIndex + index, m)
+                }
+                dirty = true
+            }
+
+            if (dirty) view.invalidate()
         },
     )
 }

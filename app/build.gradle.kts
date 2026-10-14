@@ -1,8 +1,19 @@
+import java.util.Properties
+
 plugins {
     id("com.android.application")
     id("org.jetbrains.kotlin.android")
     id("org.jetbrains.kotlin.plugin.compose")
 }
+
+// Release signing: values come from keystore.properties (local) or environment variables (CI).
+// When neither is present the release build falls back to the debug key so it stays installable.
+val keystoreProps = Properties().apply {
+    val file = rootProject.file("keystore.properties")
+    if (file.exists()) file.inputStream().use { load(it) }
+}
+fun signingValue(name: String): String? = keystoreProps.getProperty(name) ?: System.getenv(name)
+val releaseKeystore = signingValue("KEYSTORE_FILE")?.let { rootProject.file(it) }?.takeIf { it.exists() }
 
 android {
     namespace = "com.krstechsolutions.krslocation"
@@ -12,8 +23,20 @@ android {
         applicationId = "com.krstechsolutions.krslocation"
         minSdk = 26
         targetSdk = 35
-        versionCode = 1
-        versionName = "1.0.0"
+        // CI passes -PversionName / -PversionCode from the git tag and run number.
+        versionCode = (project.findProperty("versionCode") as String?)?.toIntOrNull() ?: 2
+        versionName = (project.findProperty("versionName") as String?) ?: "1.1.0"
+    }
+
+    signingConfigs {
+        if (releaseKeystore != null) {
+            create("release") {
+                storeFile = releaseKeystore
+                storePassword = signingValue("KEYSTORE_PASSWORD")
+                keyAlias = signingValue("KEY_ALIAS")
+                keyPassword = signingValue("KEY_PASSWORD")
+            }
+        }
     }
 
     buildTypes {
@@ -24,6 +47,12 @@ android {
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
             )
+            signingConfig = if (releaseKeystore != null) {
+                signingConfigs.getByName("release")
+            } else {
+                logger.warn("No release keystore configured; signing release with the debug key.")
+                signingConfigs.getByName("debug")
+            }
         }
     }
 
@@ -38,6 +67,7 @@ android {
 
     buildFeatures {
         compose = true
+        buildConfig = true
     }
 }
 

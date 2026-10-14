@@ -20,7 +20,19 @@ mocked position.
   sudden jumps happy. Speed and bearing are reported in the location fix.
 - Direction pad to nudge the position north / south / east / west by a
   configurable number of metres while mocking is running.
-- Remembers your last position and settings.
+- **Route simulation**: tap waypoints on the map, then play the route at a
+  chosen speed with pause, resume, loop and live progress on the map and in
+  the notification.
+- **Favorites**: save named places and jump back to them from a bottom sheet.
+- **Address search** through OpenStreetMap's Nominatim (no API key).
+- **Share and paste**: share the current position as a map link, paste
+  "lat, lng" or Google Maps / OSM / Apple Maps links, and open `geo:` links or
+  shared text directly in the app.
+- **Quick Settings tile and home screen widget** to start or stop mocking at
+  the last position without opening the app.
+- **In-app updater** that checks GitHub Releases and installs new versions.
+- Developer info screen with version, contact and update controls.
+- Remembers your last position, route and settings.
 - No API keys, no accounts, no root.
 
 ## UI stack
@@ -56,6 +68,40 @@ mocked position.
 
 The status line at the top of the controls turns green once the app is the
 selected mock location app.
+
+## Releases and signing
+
+Pushing a tag such as `v1.2.0` runs `.github/workflows/release.yml`, which
+builds a **signed** release APK, verifies the signature and publishes it as a
+GitHub Release with the APK attached. The app's About screen checks the latest
+release and can download and install it (the system installer still asks for
+confirmation).
+
+One-time setup:
+
+1. Create a keystore (keep it safe; losing it means users must uninstall to update):
+
+   ```bash
+   keytool -genkeypair -v -keystore krs-release.jks -alias krs \
+     -keyalg RSA -keysize 4096 -validity 10000
+   ```
+
+2. Add these repository secrets (Settings › Secrets and variables › Actions):
+
+   | Secret              | Value                                   |
+   |---------------------|-----------------------------------------|
+   | `KEYSTORE_BASE64`   | `base64 -w0 krs-release.jks`            |
+   | `KEYSTORE_PASSWORD` | keystore password                       |
+   | `KEY_ALIAS`         | `krs` (or the alias you chose)          |
+   | `KEY_PASSWORD`      | key password                            |
+
+3. Release: `git tag v1.2.0 && git push origin v1.2.0`, or run the
+   "Release" workflow manually with a version number.
+
+For local signed builds put the same values in a `keystore.properties` file at
+the repository root (ignored by git) with `KEYSTORE_FILE=/path/to/krs-release.jks`.
+Without a keystore, `assembleRelease` signs with the debug key so the APK stays
+installable for testing.
 
 ## Building
 
