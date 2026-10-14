@@ -30,7 +30,11 @@ mocked position.
   shared text directly in the app.
 - **Quick Settings tile and home screen widget** to start or stop mocking at
   the last position without opening the app.
-- **In-app updater** that checks GitHub Releases and installs new versions.
+- **In-app updater** that checks GitHub Releases, shows the release notes
+  ("What's new") before installing, verifies the APK's SHA-256 against the
+  digest GitHub publishes and compares signing keys so a key change is
+  explained instead of failing silently. A changelog also appears on the first
+  launch after an update, and the About screen lists the release history.
 - Developer info screen with version, contact and update controls.
 - Remembers your last position, route and settings.
 - No API keys, no accounts, no root.

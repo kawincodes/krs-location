@@ -97,6 +97,7 @@ import com.composables.icons.lucide.Route
 import com.composables.icons.lucide.Search
 import com.composables.icons.lucide.Settings2
 import com.composables.icons.lucide.Share2
+import com.composables.icons.lucide.Sparkles
 import com.composables.icons.lucide.ShieldCheck
 import com.composables.icons.lucide.Square
 import com.composables.icons.lucide.Star
@@ -133,6 +134,7 @@ import com.krstechsolutions.krslocation.ui.map.MapProvider
 import com.krstechsolutions.krslocation.ui.map.OsmMap
 import com.krstechsolutions.krslocation.ui.theme.ShadRadius
 import com.krstechsolutions.krslocation.ui.theme.ShadTheme
+import com.krstechsolutions.krslocation.update.MarkdownLite
 import kotlinx.coroutines.delay
 import org.osmdroid.util.GeoPoint
 
@@ -644,10 +646,12 @@ private fun ControlPanel(
         vm.updateAvailable?.let { release ->
             ShadAlert(
                 title = stringResource(R.string.update_banner, release.version),
+                description = MarkdownLite.plainText(release.notes).lineSequence().firstOrNull { it.isNotBlank() },
                 icon = Lucide.Download,
                 action = {
-                    ShadButton(onClick = { vm.screen = Screen.About }, variant = ButtonVariant.Outline, size = ButtonSize.Sm) {
-                        Text(stringResource(R.string.action_view))
+                    ShadButton(onClick = vm::openUpdateNotes, variant = ButtonVariant.Outline, size = ButtonSize.Sm) {
+                        ButtonIcon(Lucide.Sparkles)
+                        Text(stringResource(R.string.action_whats_new))
                     }
                 },
             )

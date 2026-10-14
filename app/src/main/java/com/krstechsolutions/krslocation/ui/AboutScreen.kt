@@ -33,6 +33,9 @@ import com.composables.icons.lucide.CircleCheck
 import com.composables.icons.lucide.Code
 import com.composables.icons.lucide.Download
 import com.composables.icons.lucide.ExternalLink
+import com.composables.icons.lucide.Fingerprint
+import com.composables.icons.lucide.History
+import com.composables.icons.lucide.Sparkles
 import com.composables.icons.lucide.Globe
 import com.composables.icons.lucide.Lucide
 import com.composables.icons.lucide.Mail
@@ -58,6 +61,7 @@ import com.krstechsolutions.krslocation.ui.components.ShadListRow
 import com.krstechsolutions.krslocation.ui.components.ShadSeparator
 import com.krstechsolutions.krslocation.ui.theme.ShadRadius
 import com.krstechsolutions.krslocation.ui.theme.ShadTheme
+import com.krstechsolutions.krslocation.update.MarkdownLite
 import com.krstechsolutions.krslocation.update.UpdateInstaller
 
 @Composable
@@ -123,6 +127,22 @@ fun AboutScreen(vm: MainViewModel) {
                 }
                 Spacer(Modifier.height(12.dp))
                 Text(stringResource(R.string.about_tagline), style = ShadTheme.typography.p, color = c.mutedForeground)
+                vm.installedSigning?.let { cert ->
+                    Spacer(Modifier.height(12.dp))
+                    Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                        Icon(Lucide.Fingerprint, null, Modifier.size(16.dp), tint = c.mutedForeground)
+                        ShadBadge(
+                            stringResource(if (cert.isDebugKey) R.string.signing_debug else R.string.signing_release),
+                            variant = if (cert.isDebugKey) BadgeVariant.Outline else BadgeVariant.Secondary,
+                        )
+                    }
+                    Spacer(Modifier.height(4.dp))
+                    Text(
+                        stringResource(R.string.signing_fingerprint, cert.fingerprint),
+                        style = ShadTheme.typography.mono,
+                        color = c.mutedForeground,
+                    )
+                }
             }
 
             // Updates
@@ -154,18 +174,18 @@ fun AboutScreen(vm: MainViewModel) {
                     when {
                         release != null && release.isNewerThanInstalled -> ShadAlert(
                             title = stringResource(R.string.about_update_available, release.version),
-                            description = release.notes.trim().take(400).ifEmpty { release.name },
+                            description = MarkdownLite.plainText(release.notes).lineSequence().firstOrNull { it.isNotBlank() } ?: release.name,
                             icon = Lucide.Download,
                             variant = AlertVariant.Default,
                             action = {
                                 Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                                     ShadButton(
-                                        onClick = { UpdateInstaller.download(context, release) },
+                                        onClick = { vm.openReleaseNotes(release, ReleaseNotesMode.UPDATE) },
                                         size = ButtonSize.Sm,
                                         modifier = Modifier.fillMaxWidth(),
                                     ) {
-                                        ButtonIcon(Lucide.Download)
-                                        Text(stringResource(R.string.about_download_install))
+                                        ButtonIcon(Lucide.Sparkles)
+                                        Text(stringResource(R.string.action_whats_new))
                                     }
                                     ShadButton(
                                         onClick = { open(release.htmlUrl) },
@@ -195,6 +215,13 @@ fun AboutScreen(vm: MainViewModel) {
                         )
                     }
                 }
+                ShadListRow(
+                    title = stringResource(R.string.action_release_history),
+                    subtitle = stringResource(R.string.about_release_history_desc),
+                    icon = Lucide.History,
+                    onClick = vm::loadReleaseHistory,
+                    trailing = { Icon(Lucide.ChevronRight, null, Modifier.size(16.dp), tint = c.mutedForeground) },
+                )
             }
 
             // Developer

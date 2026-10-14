@@ -32,8 +32,8 @@ android {
         minSdk = 26
         targetSdk = 35
         // CI passes -PversionName / -PversionCode from the git tag and run number.
-        versionCode = (project.findProperty("versionCode") as String?)?.toIntOrNull() ?: 4
-        versionName = (project.findProperty("versionName") as String?) ?: "1.2.0"
+        versionCode = (project.findProperty("versionCode") as String?)?.toIntOrNull() ?: 5
+        versionName = (project.findProperty("versionName") as String?) ?: "1.3.0"
 
         manifestPlaceholders["MAPS_API_KEY"] = mapsApiKey
         buildConfigField("String", "MAPS_API_KEY", "\"$mapsApiKey\"")

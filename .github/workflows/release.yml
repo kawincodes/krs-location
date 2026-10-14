@@ -101,15 +101,28 @@ jobs:
 
       - name: Write release notes header
         run: |
+          SDK="${ANDROID_HOME:-${ANDROID_SDK_ROOT:-/usr/local/lib/android/sdk}}"
+          APK="dist/KRS-Location-${{ steps.version.outputs.version }}.apk"
+          SHA="$(sha256sum "$APK" | cut -d' ' -f1)"
+          FP="$("$SDK/build-tools/35.0.0/apksigner" verify --print-certs "$APK" | grep -i 'SHA-256 digest' | head -1 | awk '{print $NF}')"
           {
             echo "Download **KRS-Location-${{ steps.version.outputs.version }}.apk** below and install it on Android 8.0 or newer."
             echo "Then enable Developer options and choose KRS Location under *Select mock location app*."
             echo
-            if [ "${{ steps.keystore.outputs.signed }}" != "true" ]; then
+            if [ "${{ steps.keystore.outputs.signed }}" = "true" ]; then
+              echo "> **Signed release.** Installs over earlier signed versions; the app checks the checksum and signing key before installing."
+            else
               echo "> **Note:** this build is signed with the debug key because the repository has no release keystore secrets yet."
               echo "> Once signed releases start, this version must be uninstalled before updating."
-              echo
             fi
+            echo
+            echo "<details><summary>Verification</summary>"
+            echo
+            echo "- APK SHA-256: \`$SHA\`"
+            echo "- Signing certificate SHA-256: \`$FP\`"
+            echo
+            echo "</details>"
+            echo
           } > dist/notes.md
 
       - name: Publish GitHub Release

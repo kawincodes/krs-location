@@ -69,6 +69,11 @@ class LocationPrefs(context: Context) {
         get() = prefs.getString(KEY_GOOGLE_MAP_TYPE, "normal") ?: "normal"
         set(value) = prefs.edit().putString(KEY_GOOGLE_MAP_TYPE, value).apply()
 
+    /** Version name the user last saw running; used to show "what's new" after an update. */
+    var lastSeenVersion: String
+        get() = prefs.getString(KEY_LAST_SEEN_VERSION, "") ?: ""
+        set(value) = prefs.edit().putString(KEY_LAST_SEEN_VERSION, value).apply()
+
     var lastUpdateCheck: Long
         get() = prefs.getLong(KEY_UPDATE_CHECK, 0L)
         set(value) = prefs.edit().putLong(KEY_UPDATE_CHECK, value).apply()
@@ -84,6 +89,7 @@ class LocationPrefs(context: Context) {
         private const val KEY_ROUTE_LOOP = "route_loop"
         private const val KEY_ROUTE = "route_waypoints"
         private const val KEY_UPDATE_CHECK = "last_update_check"
+        private const val KEY_LAST_SEEN_VERSION = "last_seen_version"
         private const val KEY_MAP_PROVIDER = "map_provider"
         private const val KEY_GOOGLE_MAP_TYPE = "google_map_type"
 

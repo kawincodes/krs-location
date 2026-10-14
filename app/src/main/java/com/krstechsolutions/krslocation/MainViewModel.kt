@@ -25,7 +25,11 @@ import com.krstechsolutions.krslocation.ui.map.CameraRequest
 import com.krstechsolutions.krslocation.ui.map.GoogleMapStyle
 import com.krstechsolutions.krslocation.ui.map.MapProvider
 import com.krstechsolutions.krslocation.update.ReleaseInfo
+import com.krstechsolutions.krslocation.update.SigningInfo
 import com.krstechsolutions.krslocation.update.UpdateChecker
+import com.krstechsolutions.krslocation.update.UpdateInstaller
+import com.krstechsolutions.krslocation.ui.ReleaseNotesMode
+import com.krstechsolutions.krslocation.BuildConfig
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
@@ -146,6 +150,24 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
     var updateChecked: Boolean by mutableStateOf(false)
         private set
 
+    // Release notes / history / install flow
+    var releaseNotesFor: ReleaseInfo? by mutableStateOf(null)
+        private set
+    var releaseNotesMode: ReleaseNotesMode by mutableStateOf(ReleaseNotesMode.UPDATE)
+        private set
+    var showReleaseHistory: Boolean by mutableStateOf(false)
+    var releaseHistory: List<ReleaseInfo> by mutableStateOf(emptyList())
+        private set
+    var historyLoading: Boolean by mutableStateOf(false)
+        private set
+    var historyError: String? by mutableStateOf(null)
+        private set
+    var installStatus: UpdateInstaller.Status by mutableStateOf(UpdateInstaller.Status.Idle)
+        private set
+
+    /** Signing certificate of the installed build, for the About screen. */
+    val installedSigning: SigningInfo.Cert? = SigningInfo.installed(application)
+
     private var pendingAfterPermission: (() -> Unit)? = null
     private var lastErrorState: MockLocationService.State? = null
     private val errorObserver = Observer<MockLocationService.State> { state ->
@@ -165,6 +187,17 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
         if (System.currentTimeMillis() - prefs.lastUpdateCheck > UPDATE_INTERVAL_MS) {
             checkForUpdates(manual = false)
         }
+        viewModelScope.launch {
+            UpdateInstaller.status.collect { status ->
+                installStatus = status
+                when (status) {
+                    is UpdateInstaller.Status.HashMismatch -> showMessage(app.getString(R.string.update_hash_mismatch))
+                    is UpdateInstaller.Status.Failed -> showMessage(status.reason)
+                    else -> Unit
+                }
+            }
+        }
+        showWhatsNewAfterUpdate()
     }
 
     override fun onCleared() {
@@ -517,6 +550,62 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
 
     val updateAvailable: ReleaseInfo?
         get() = latestRelease?.takeIf { it.isNewerThanInstalled }
+
+    fun openReleaseNotes(release: ReleaseInfo, mode: ReleaseNotesMode) {
+        releaseNotesFor = release
+        releaseNotesMode = mode
+    }
+
+    /** Opens the "What's new" sheet for the available update, fetching it first if needed. */
+    fun openUpdateNotes() {
+        val release = updateAvailable
+        if (release != null) {
+            openReleaseNotes(release, ReleaseNotesMode.UPDATE)
+        } else {
+            checkForUpdates(manual = true)
+        }
+    }
+
+    fun dismissReleaseNotes() {
+        releaseNotesFor = null
+        if (installStatus !is UpdateInstaller.Status.Downloading && installStatus !is UpdateInstaller.Status.Verifying) {
+            UpdateInstaller.reset()
+        }
+    }
+
+    fun startUpdateDownload(release: ReleaseInfo) {
+        UpdateInstaller.download(app, release)
+    }
+
+    fun dismissInstallStatus() = UpdateInstaller.reset()
+
+    fun loadReleaseHistory() {
+        showReleaseHistory = true
+        if (historyLoading) return
+        viewModelScope.launch {
+            historyLoading = true
+            historyError = null
+            try {
+                releaseHistory = UpdateChecker.fetchHistory()
+            } catch (e: Exception) {
+                historyError = e.message ?: e.javaClass.simpleName
+            } finally {
+                historyLoading = false
+            }
+        }
+    }
+
+    /** First launch after an upgrade: show this version's notes once, Play Store style. */
+    private fun showWhatsNewAfterUpdate() {
+        val current = BuildConfig.VERSION_NAME
+        val last = prefs.lastSeenVersion
+        prefs.lastSeenVersion = current
+        if (last.isEmpty() || last == current) return
+        viewModelScope.launch {
+            runCatching { UpdateChecker.fetchByTag("v$current") }
+                .onSuccess { release -> if (releaseNotesFor == null) openReleaseNotes(release, ReleaseNotesMode.INSTALLED) }
+        }
+    }
 
     // ---- Misc -----------------------------------------------------------------------------
 
