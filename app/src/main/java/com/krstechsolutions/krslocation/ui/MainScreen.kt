@@ -72,6 +72,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.window.Dialog
 import androidx.lifecycle.compose.LifecycleResumeEffect
 import com.composables.icons.lucide.ArrowDown
 import com.composables.icons.lucide.ArrowLeft
@@ -83,6 +84,7 @@ import com.composables.icons.lucide.Download
 import com.composables.icons.lucide.Flag
 import com.composables.icons.lucide.Footprints
 import com.composables.icons.lucide.Info
+import com.composables.icons.lucide.Layers
 import com.composables.icons.lucide.LocateFixed
 import com.composables.icons.lucide.Lucide
 import com.composables.icons.lucide.MapPin
@@ -125,6 +127,9 @@ import com.krstechsolutions.krslocation.ui.components.ShadProgress
 import com.krstechsolutions.krslocation.ui.components.ShadSeparator
 import com.krstechsolutions.krslocation.ui.components.ShadSwitch
 import com.krstechsolutions.krslocation.ui.components.ShadTabs
+import com.krstechsolutions.krslocation.ui.map.GoogleMapStyle
+import com.krstechsolutions.krslocation.ui.map.GoogleMapView
+import com.krstechsolutions.krslocation.ui.map.MapProvider
 import com.krstechsolutions.krslocation.ui.map.OsmMap
 import com.krstechsolutions.krslocation.ui.theme.ShadRadius
 import com.krstechsolutions.krslocation.ui.theme.ShadTheme
@@ -336,22 +341,46 @@ private fun BoxScope.MapArea(vm: MainViewModel, state: MockLocationService.State
     val showRoute = vm.mode == EditMode.Route || routePlaying
     val traveled = if (routePlaying) vm.traveledPoints(state) else emptyList()
 
-    OsmMap(
-        markerPosition = markerPosition,
-        routePoints = if (showRoute) routePoints else emptyList(),
-        traveledPoints = traveled,
-        routeColor = c.mutedForeground.copy(alpha = 0.75f),
-        traveledColor = if (c.isDark) Color(0xFF22C55E) else Color(0xFF16A34A),
-        cameraRequest = vm.cameraRequest,
-        initialCenter = vm.target,
-        initialZoom = vm.initialZoom,
-        darkTheme = c.isDark,
-        onTap = vm::onMapTap,
-        onMarkerDragEnd = { if (vm.mode == EditMode.Pin && !routePlaying) vm.setTarget(it, recenter = false) },
-        onWaypointTap = { if (!routePlaying) vm.removeWaypoint(it) },
-        onZoomChanged = vm::saveZoom,
-        modifier = Modifier.fillMaxSize(),
-    )
+    val routeColor = c.mutedForeground.copy(alpha = 0.75f)
+    val traveledColor = if (c.isDark) Color(0xFF22C55E) else Color(0xFF16A34A)
+    val onDragEnd: (GeoPoint) -> Unit = { if (vm.mode == EditMode.Pin && !routePlaying) vm.setTarget(it, recenter = false) }
+    val onWaypointTap: (Int) -> Unit = { if (!routePlaying) vm.removeWaypoint(it) }
+
+    when (vm.mapProvider) {
+        MapProvider.OSM -> OsmMap(
+            markerPosition = markerPosition,
+            routePoints = if (showRoute) routePoints else emptyList(),
+            traveledPoints = traveled,
+            routeColor = routeColor,
+            traveledColor = traveledColor,
+            cameraRequest = vm.cameraRequest,
+            initialCenter = vm.target,
+            initialZoom = vm.initialZoom,
+            darkTheme = c.isDark,
+            onTap = vm::onMapTap,
+            onMarkerDragEnd = onDragEnd,
+            onWaypointTap = onWaypointTap,
+            onZoomChanged = vm::saveZoom,
+            modifier = Modifier.fillMaxSize(),
+        )
+        MapProvider.GOOGLE -> GoogleMapView(
+            markerPosition = markerPosition,
+            routePoints = if (showRoute) routePoints else emptyList(),
+            traveledPoints = traveled,
+            routeColor = routeColor,
+            traveledColor = traveledColor,
+            cameraRequest = vm.cameraRequest,
+            initialCenter = vm.target,
+            initialZoom = vm.initialZoom,
+            darkTheme = c.isDark,
+            style = vm.googleMapStyle,
+            onTap = vm::onMapTap,
+            onMarkerDragEnd = onDragEnd,
+            onWaypointTap = onWaypointTap,
+            onZoomChanged = vm::saveZoom,
+            modifier = Modifier.fillMaxSize(),
+        )
+    }
 
     if (vm.searchOpen) {
         SearchOverlay(
@@ -390,18 +419,110 @@ private fun BoxScope.MapArea(vm: MainViewModel, state: MockLocationService.State
         Text(MainViewModel.formatPoint(shown.latitude, shown.longitude), style = ShadTheme.typography.mono)
     }
 
-    // Recenter
-    ShadButton(
-        onClick = vm::recenter,
-        variant = ButtonVariant.Outline,
-        size = ButtonSize.Icon,
-        modifier = Modifier
+    // Map layers + recenter
+    Column(
+        Modifier
             .align(Alignment.BottomEnd)
-            .padding(12.dp)
-            .shadow(2.dp, ShadRadius.mdShape),
+            .padding(12.dp),
+        verticalArrangement = Arrangement.spacedBy(8.dp),
     ) {
-        Icon(Lucide.LocateFixed, stringResource(R.string.action_center), Modifier.size(18.dp))
+        ShadButton(
+            onClick = { vm.showMapSettings = true },
+            variant = ButtonVariant.Outline,
+            size = ButtonSize.Icon,
+            modifier = Modifier.shadow(2.dp, ShadRadius.mdShape),
+        ) {
+            Icon(Lucide.Layers, stringResource(R.string.action_map_layers), Modifier.size(18.dp))
+        }
+        ShadButton(
+            onClick = vm::recenter,
+            variant = ButtonVariant.Outline,
+            size = ButtonSize.Icon,
+            modifier = Modifier.shadow(2.dp, ShadRadius.mdShape),
+        ) {
+            Icon(Lucide.LocateFixed, stringResource(R.string.action_center), Modifier.size(18.dp))
+        }
     }
+
+    if (vm.showMapSettings) {
+        MapSettingsDialog(vm)
+    }
+}
+
+@Composable
+private fun MapSettingsDialog(vm: MainViewModel) {
+    val c = ShadTheme.colors
+    Dialog(onDismissRequest = { vm.showMapSettings = false }) {
+        Column(
+            Modifier
+                .fillMaxWidth()
+                .shadow(8.dp, ShadRadius.lgShape)
+                .clip(ShadRadius.lgShape)
+                .background(c.popover)
+                .border(1.dp, c.border, ShadRadius.lgShape)
+                .padding(16.dp),
+            verticalArrangement = Arrangement.spacedBy(8.dp),
+        ) {
+            Text(stringResource(R.string.map_settings_title), style = ShadTheme.typography.h4, color = c.popoverForeground)
+            SectionLabel(stringResource(R.string.map_provider))
+            ChoiceRow(
+                title = stringResource(R.string.map_provider_osm),
+                subtitle = stringResource(R.string.map_provider_osm_desc),
+                selected = vm.mapProvider == MapProvider.OSM,
+                onClick = { vm.setMapProvider(MapProvider.OSM) },
+            )
+            ChoiceRow(
+                title = stringResource(R.string.map_provider_google),
+                subtitle = if (MapProvider.googleAvailable) stringResource(R.string.map_provider_google_desc) else stringResource(R.string.map_google_missing_key),
+                selected = vm.mapProvider == MapProvider.GOOGLE,
+                enabled = MapProvider.googleAvailable,
+                onClick = { vm.setMapProvider(MapProvider.GOOGLE) },
+            )
+            if (vm.mapProvider == MapProvider.GOOGLE) {
+                SectionLabel(stringResource(R.string.map_type))
+                GoogleMapStyle.entries.forEach { style ->
+                    ChoiceRow(
+                        title = stringResource(
+                            when (style) {
+                                GoogleMapStyle.NORMAL -> R.string.map_type_normal
+                                GoogleMapStyle.SATELLITE -> R.string.map_type_satellite
+                                GoogleMapStyle.HYBRID -> R.string.map_type_hybrid
+                                GoogleMapStyle.TERRAIN -> R.string.map_type_terrain
+                            }
+                        ),
+                        selected = vm.googleMapStyle == style,
+                        onClick = { vm.setGoogleMapStyle(style) },
+                    )
+                }
+            }
+            Spacer(Modifier.height(4.dp))
+            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End) {
+                ShadButton(onClick = { vm.showMapSettings = false }, variant = ButtonVariant.Outline) {
+                    Text(stringResource(R.string.action_close))
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun ChoiceRow(
+    title: String,
+    selected: Boolean,
+    onClick: () -> Unit,
+    subtitle: String? = null,
+    enabled: Boolean = true,
+) {
+    val c = ShadTheme.colors
+    ShadListRow(
+        title = title,
+        subtitle = subtitle,
+        onClick = if (enabled) onClick else null,
+        modifier = Modifier.alpha(if (enabled) 1f else 0.5f),
+        trailing = {
+            if (selected) Icon(Lucide.Check, null, Modifier.size(18.dp), tint = c.foreground)
+        },
+    )
 }
 
 @Composable

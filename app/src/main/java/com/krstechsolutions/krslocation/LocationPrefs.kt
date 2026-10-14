@@ -59,6 +59,16 @@ class LocationPrefs(context: Context) {
             prefs.edit().putString(KEY_ROUTE, array.toString()).apply()
         }
 
+    /** "osm" or "google". */
+    var mapProvider: String
+        get() = prefs.getString(KEY_MAP_PROVIDER, "osm") ?: "osm"
+        set(value) = prefs.edit().putString(KEY_MAP_PROVIDER, value).apply()
+
+    /** Google map type name: normal, satellite, hybrid or terrain. */
+    var googleMapType: String
+        get() = prefs.getString(KEY_GOOGLE_MAP_TYPE, "normal") ?: "normal"
+        set(value) = prefs.edit().putString(KEY_GOOGLE_MAP_TYPE, value).apply()
+
     var lastUpdateCheck: Long
         get() = prefs.getLong(KEY_UPDATE_CHECK, 0L)
         set(value) = prefs.edit().putLong(KEY_UPDATE_CHECK, value).apply()
@@ -74,6 +84,8 @@ class LocationPrefs(context: Context) {
         private const val KEY_ROUTE_LOOP = "route_loop"
         private const val KEY_ROUTE = "route_waypoints"
         private const val KEY_UPDATE_CHECK = "last_update_check"
+        private const val KEY_MAP_PROVIDER = "map_provider"
+        private const val KEY_GOOGLE_MAP_TYPE = "google_map_type"
 
         // India Gate, New Delhi.
         const val DEFAULT_LAT = 28.612912

@@ -86,6 +86,21 @@
     <string name="route_progress">%1$d%% · %2$s of %3$s</string>
     <string name="route_need_two">Add at least two waypoints first</string>
 
+    <!-- Map settings -->
+    <string name="action_map_layers">Map layers</string>
+    <string name="map_settings_title">Map</string>
+    <string name="map_provider">Provider</string>
+    <string name="map_provider_osm">OpenStreetMap</string>
+    <string name="map_provider_osm_desc">Free map tiles, no API key needed</string>
+    <string name="map_provider_google">Google Maps</string>
+    <string name="map_provider_google_desc">Normal, satellite, hybrid and terrain views</string>
+    <string name="map_google_missing_key">Google Maps needs a Maps SDK key. Add MAPS_API_KEY to local.properties (or the MAPS_API_KEY repository secret) and rebuild.</string>
+    <string name="map_type">Map type</string>
+    <string name="map_type_normal">Normal</string>
+    <string name="map_type_satellite">Satellite</string>
+    <string name="map_type_hybrid">Hybrid</string>
+    <string name="map_type_terrain">Terrain</string>
+
     <!-- Search -->
     <string name="search_hint">Search for a place or address</string>
     <string name="search_no_results">No places found</string>

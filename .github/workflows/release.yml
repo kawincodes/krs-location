@@ -75,6 +75,7 @@ jobs:
 
       - name: Build signed release APK
         env:
+          MAPS_API_KEY: ${{ secrets.MAPS_API_KEY }}
           KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
           KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
           KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}

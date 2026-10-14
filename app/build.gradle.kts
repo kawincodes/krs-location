@@ -15,6 +15,14 @@ val keystoreProps = Properties().apply {
 fun signingValue(name: String): String? = keystoreProps.getProperty(name) ?: System.getenv(name)
 val releaseKeystore = signingValue("KEYSTORE_FILE")?.let { rootProject.file(it) }?.takeIf { it.exists() }
 
+// Google Maps SDK key: local.properties (MAPS_API_KEY=...) or the MAPS_API_KEY environment
+// variable in CI. Without it the app still works with OpenStreetMap and hides Google Maps.
+val localProps = Properties().apply {
+    val file = rootProject.file("local.properties")
+    if (file.exists()) file.inputStream().use { load(it) }
+}
+val mapsApiKey: String = (localProps.getProperty("MAPS_API_KEY") ?: System.getenv("MAPS_API_KEY") ?: "").trim()
+
 android {
     namespace = "com.krstechsolutions.krslocation"
     compileSdk = 35
@@ -24,8 +32,11 @@ android {
         minSdk = 26
         targetSdk = 35
         // CI passes -PversionName / -PversionCode from the git tag and run number.
-        versionCode = (project.findProperty("versionCode") as String?)?.toIntOrNull() ?: 3
-        versionName = (project.findProperty("versionName") as String?) ?: "1.1.1"
+        versionCode = (project.findProperty("versionCode") as String?)?.toIntOrNull() ?: 4
+        versionName = (project.findProperty("versionName") as String?) ?: "1.2.0"
+
+        manifestPlaceholders["MAPS_API_KEY"] = mapsApiKey
+        buildConfigField("String", "MAPS_API_KEY", "\"$mapsApiKey\"")
     }
 
     signingConfigs {
@@ -93,6 +104,10 @@ dependencies {
 
     // OpenStreetMap based map view. No API key required.
     implementation("org.osmdroid:osmdroid-android:6.1.20")
+
+    // Google Maps (optional at runtime; needs MAPS_API_KEY).
+    implementation("com.google.android.gms:play-services-maps:19.0.0")
+    implementation("com.google.maps.android:maps-compose:6.4.1")
 
     testImplementation("junit:junit:4.13.2")
 }

@@ -22,6 +22,8 @@ import com.krstechsolutions.krslocation.model.LatLng
 import com.krstechsolutions.krslocation.net.NominatimClient
 import com.krstechsolutions.krslocation.net.PlaceResult
 import com.krstechsolutions.krslocation.ui.map.CameraRequest
+import com.krstechsolutions.krslocation.ui.map.GoogleMapStyle
+import com.krstechsolutions.krslocation.ui.map.MapProvider
 import com.krstechsolutions.krslocation.update.ReleaseInfo
 import com.krstechsolutions.krslocation.update.UpdateChecker
 import kotlinx.coroutines.Job
@@ -63,6 +65,32 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
         private set
 
     val initialZoom: Double = prefs.zoom
+
+    // ---- Map provider ---------------------------------------------------------------------
+
+    var mapProvider: MapProvider by mutableStateOf(
+        MapProvider.fromKey(prefs.mapProvider).let { if (it == MapProvider.GOOGLE && !MapProvider.googleAvailable) MapProvider.OSM else it }
+    )
+        private set
+    var googleMapStyle: GoogleMapStyle by mutableStateOf(GoogleMapStyle.fromKey(prefs.googleMapType))
+        private set
+    var showMapSettings: Boolean by mutableStateOf(false)
+
+    fun setMapProvider(provider: MapProvider) {
+        if (provider == MapProvider.GOOGLE && !MapProvider.googleAvailable) {
+            showMessage(app.getString(R.string.map_google_missing_key))
+            return
+        }
+        mapProvider = provider
+        prefs.mapProvider = provider.key
+        // Both maps start from the saved zoom; re-centre so the switch feels seamless.
+        recenter()
+    }
+
+    fun setGoogleMapStyle(style: GoogleMapStyle) {
+        googleMapStyle = style
+        prefs.googleMapType = style.key
+    }
 
     var isMockLocationApp: Boolean by mutableStateOf(false)
         private set

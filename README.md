@@ -46,7 +46,24 @@ mocked position.
 - **Lucide icons** via `com.composables:icons-lucide`, used as Compose
   `ImageVector`s (`Lucide.MapPin`, `Lucide.Play`, ...).
 - **osmdroid** map embedded with `AndroidView`; tiles are colour-inverted in
-  dark mode.
+  dark mode. Optional **Google Maps** through `maps-compose` with a dark
+  style, selectable from the layers button.
+
+## Google Maps (optional)
+
+The map defaults to OpenStreetMap. To enable Google Maps (normal, satellite,
+hybrid and terrain) the app must be built with a Maps SDK for Android key:
+
+1. In Google Cloud Console create an API key with **Maps SDK for Android**
+   enabled, restricted to the package `com.krstechsolutions.krslocation` and
+   your signing certificate's SHA-1 (`keytool -list -v -keystore ...`). For
+   debug builds also add the debug keystore's SHA-1.
+2. Local builds: add `MAPS_API_KEY=AIza...` to `local.properties`.
+   CI and releases: add a `MAPS_API_KEY` repository secret.
+3. Rebuild. The provider switch lives behind the layers button on the map.
+
+Without a key the Google option is shown disabled with a hint, and the app
+keeps working with OpenStreetMap.
 
 ## Requirements
 
